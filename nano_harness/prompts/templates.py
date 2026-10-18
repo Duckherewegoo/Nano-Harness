@@ -14,7 +14,6 @@
 """
 
 import re
-from typing import Dict, Any, Optional, List
 from string import Template
 
 
@@ -30,7 +29,7 @@ class PromptTemplateEngine:
     """
     
     def __init__(self):
-        self._templates: Dict[str, str] = {}
+        self._templates: dict[str, str] = {}
         self._register_default_templates()
     
     def _register_default_templates(self):
@@ -187,7 +186,7 @@ $answer
         """注册一个新模板"""
         self._templates[name] = template
     
-    def register_templates(self, templates: Dict[str, str]):
+    def register_templates(self, templates: dict[str, str]):
         """批量注册模板"""
         self._templates.update(templates)
     
@@ -195,7 +194,7 @@ $answer
         """检查模板是否存在"""
         return name in self._templates
     
-    def list_templates(self) -> List[str]:
+    def list_templates(self) -> list[str]:
         """列出所有模板名称"""
         return list(self._templates.keys())
     
@@ -242,7 +241,7 @@ $answer
     
     # ===== 高级渲染 =====
     
-    def render_chain(self, template_names: List[str], **kwargs) -> str:
+    def render_chain(self, template_names: list[str], **kwargs) -> str:
         """
         链式渲染多个模板，拼接结果
         
@@ -257,7 +256,7 @@ $answer
     def render_with_examples(
         self,
         base_template: str,
-        examples: List[Dict[str, str]],
+        examples: list[dict[str, str]],
         **kwargs,
     ) -> str:
         """
@@ -287,7 +286,7 @@ $answer
     
     # ===== 模板工具 =====
     
-    def extract_variables(self, template_name: str) -> List[str]:
+    def extract_variables(self, template_name: str) -> list[str]:
         """提取模板中的变量名"""
         if template_name not in self._templates:
             return []
@@ -297,6 +296,6 @@ $answer
         variables = re.findall(r'\$(\w+)', template)
         return list(set(variables))
     
-    def get_template(self, name: str) -> Optional[str]:
+    def get_template(self, name: str) -> str | None:
         """获取原始模板内容"""
         return self._templates.get(name)

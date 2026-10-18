@@ -10,8 +10,8 @@ NanoHarness - 轻量级多智能体编排框架
 __version__ = "0.1.0"
 __author__ = "NanoHarness Team"
 
-from .harness import Harness
 from .agent.base import BaseAgent
+from .harness import Harness
 from .skills.registry import SkillRegistry
 
-__all__ = ["Harness", "BaseAgent", "SkillRegistry"]
+__all__ = ["BaseAgent", "Harness", "SkillRegistry"]

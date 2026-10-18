@@ -17,7 +17,7 @@
 6. 自我校验：让AI检查自己的输出
 """
 
-from .templates import PromptTemplateEngine
 from .optimizer import PromptOptimizer
+from .templates import PromptTemplateEngine
 
-__all__ = ["PromptTemplateEngine", "PromptOptimizer"]
+__all__ = ["PromptOptimizer", "PromptTemplateEngine"]

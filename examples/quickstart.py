@@ -111,7 +111,7 @@ def example_3_prompt_engineering():
     print("=" * 60)
     print()
     
-    from nano_harness.prompts import PromptTemplateEngine, PromptOptimizer
+    from nano_harness.prompts import PromptOptimizer, PromptTemplateEngine
     
     # 模板引擎
     engine = PromptTemplateEngine()
@@ -195,13 +195,13 @@ def example_4_bash_security():
     print()
     
     print("安全特性:")
-    print("  ✅ 风险等级自动评估（low/medium/high/forbidden）")
-    print("  ✅ 用户确认回调（高风险命令需用户确认）")
-    print("  ✅ 命令黑名单（禁止极度危险的命令）")
-    print("  ✅ 工作目录限制（防止路径穿越）")
-    print("  ✅ 输出长度限制（防止输出过大）")
-    print("  ✅ 超时控制（防止命令卡死）")
-    print("  ✅ 命令历史记录")
+    print("  风险等级自动评估（low/medium/high/forbidden）")
+    print("  用户确认回调（高风险命令需用户确认）")
+    print("  命令黑名单（禁止极度危险的命令）")
+    print("  工作目录限制（防止路径穿越）")
+    print("  输出长度限制（防止输出过大）")
+    print("  超时控制（防止命令卡死）")
+    print("  命令历史记录")
     print()
 
 
@@ -212,31 +212,28 @@ def example_5_mcp_protocol():
     print("=" * 60)
     print()
     
-    from nano_harness.mcp.server import MCPServer
-    from nano_harness.mcp.client import MCPClient
-    from nano_harness.mcp.tools import MCPToolAdapter
     
     print("MCP 服务端能力:")
-    print("  ✅ Tools - 工具注册和调用")
-    print("  ✅ Resources - 资源读取")
-    print("  ✅ Prompts - 提示词模板")
-    print("  ✅ JSON-RPC 2.0 协议")
-    print("  ✅ stdio 传输模式")
-    print("  ✅ 可与LangChain桥接")
+    print("  Tools - 工具注册和调用")
+    print("  Resources - 资源读取")
+    print("  Prompts - 提示词模板")
+    print("  JSON-RPC 2.0 协议")
+    print("  stdio 传输模式")
+    print("  可与LangChain桥接")
     print()
     
     print("MCP 客户端能力:")
-    print("  ✅ 连接本地MCP服务（stdio）")
-    print("  ✅ 连接远程MCP服务（HTTP）")
-    print("  ✅ 列出和调用工具")
-    print("  ✅ 自动转换为LangChain工具")
+    print("  连接本地MCP服务（stdio）")
+    print("  连接远程MCP服务（HTTP）")
+    print("  列出和调用工具")
+    print("  自动转换为LangChain工具")
     print()
     
     print("MCP 工具适配器:")
-    print("  ✅ LangChain → MCP 转换")
-    print("  ✅ MCP → LangChain 转换")
-    print("  ✅ Skill一键暴露为MCP服务")
-    print("  ✅ 从MCP服务导入工具到Skill注册中心")
+    print("  LangChain → MCP 转换")
+    print("  MCP → LangChain 转换")
+    print("  Skill一键暴露为MCP服务")
+    print("  从MCP服务导入工具到Skill注册中心")
     print()
     
     print("使用场景:")
@@ -253,9 +250,6 @@ def example_6_multimodal():
     print("=" * 60)
     print()
     
-    from nano_harness.multimodal.image import ImageProcessor
-    from nano_harness.multimodal.video import VideoProcessor
-    from nano_harness.multimodal.audio import AudioProcessor
     
     print("图片处理 (ImageProcessor):")
     print("  - describe(): 描述图片内容")
@@ -283,10 +277,10 @@ def example_6_multimodal():
     print()
     
     print("设计原则:")
-    print("  ✅ 多后端支持（优先专业库，自动降级）")
-    print("  ✅ 统一的接口风格")
-    print("  ✅ 优雅降级（缺少依赖时不崩溃）")
-    print("  ✅ 可配置的模型/参数")
+    print("  多后端支持（优先专业库，自动降级）")
+    print("  统一的接口风格")
+    print("  优雅降级（缺少依赖时不崩溃）")
+    print("  可配置的模型/参数")
     print()
 
 
@@ -345,7 +339,7 @@ def main():
     print("╚" + "═" * 58 + "╝")
     print()
     
-    for i, (name, func) in enumerate(examples, 1):
+    for i, (_, func) in enumerate(examples, 1):
         try:
             func()
         except Exception as e:
@@ -358,7 +352,7 @@ def main():
             print()
     
     print("=" * 60)
-    print("  ✅ 所有示例完成！")
+    print("  所有示例完成！")
     print("=" * 60)
     print()
     print("下一步:")

@@ -11,8 +11,7 @@
 """
 
 import os
-from typing import Dict, List, Optional, Any
-from pathlib import Path
+from typing import Any
 
 
 class VideoProcessor:
@@ -35,7 +34,7 @@ class VideoProcessor:
     
     # ===== 核心方法 =====
     
-    def get_info(self, video_path: str) -> Dict[str, Any]:
+    def get_info(self, video_path: str) -> dict[str, Any]:
         """
         获取视频基本信息
         
@@ -56,8 +55,8 @@ class VideoProcessor:
         
         # 尝试用ffprobe获取详细信息
         try:
-            import subprocess
             import json
+            import subprocess
             
             result = subprocess.run(
                 ["ffprobe", "-v", "quiet", "-print_format", "json", 
@@ -112,7 +111,7 @@ class VideoProcessor:
         output_dir: str,
         frame_interval: float = 1.0,
         max_frames: int = 100,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         提取视频帧
         
@@ -191,7 +190,7 @@ class VideoProcessor:
         
         return extracted
     
-    def summarize(self, video_path: str, max_frames: int = 10) -> Dict[str, Any]:
+    def summarize(self, video_path: str, max_frames: int = 10) -> dict[str, Any]:
         """
         视频摘要 - 提取关键帧并生成描述
         
@@ -235,7 +234,7 @@ class VideoProcessor:
     
     # ===== 高级功能 =====
     
-    def detect_scenes(self, video_path: str, threshold: float = 30.0) -> List[Dict]:
+    def detect_scenes(self, video_path: str, threshold: float = 30.0) -> list[dict]:
         """
         场景检测 - 检测视频中的场景切换
         

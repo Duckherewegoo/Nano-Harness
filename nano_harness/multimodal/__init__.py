@@ -14,8 +14,8 @@
 - 容错：处理失败时有降级方案
 """
 
+from .audio import AudioProcessor
 from .image import ImageProcessor
 from .video import VideoProcessor
-from .audio import AudioProcessor
 
-__all__ = ["ImageProcessor", "VideoProcessor", "AudioProcessor"]
+__all__ = ["AudioProcessor", "ImageProcessor", "VideoProcessor"]

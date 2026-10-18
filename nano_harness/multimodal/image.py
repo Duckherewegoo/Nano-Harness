@@ -11,8 +11,8 @@
 """
 
 import base64
-from typing import Dict, List, Optional, Any
 from pathlib import Path
+from typing import Any
 
 
 class ImageProcessor:
@@ -63,7 +63,7 @@ class ImageProcessor:
             return result
             
         except Exception as e:
-            return f"图片描述失败: {str(e)}"
+            return f"图片描述失败: {e!s}"
     
     def extract_text(self, image_path: str) -> str:
         """
@@ -86,9 +86,9 @@ class ImageProcessor:
         except ImportError:
             return "[OCR不可用] 请安装 pytesseract 和 PIL 库"
         except Exception as e:
-            return f"OCR失败: {str(e)}"
+            return f"OCR失败: {e!s}"
     
-    def analyze(self, image_path: str) -> Dict[str, Any]:
+    def analyze(self, image_path: str) -> dict[str, Any]:
         """
         综合分析图片
         
@@ -168,7 +168,7 @@ class ImageProcessor:
         else:
             return f"图片路径: {image_path}\n[提示] 配置视觉模型后可获得详细描述"
     
-    def _analyze_colors(self, img) -> List[str]:
+    def _analyze_colors(self, img) -> list[str]:
         """简单颜色分析"""
         try:
             # 缩放到小尺寸加速分析
@@ -192,14 +192,14 @@ class ImageProcessor:
     
     # ===== 批量处理 =====
     
-    def batch_describe(self, image_paths: List[str]) -> List[str]:
+    def batch_describe(self, image_paths: list[str]) -> list[str]:
         """批量描述图片"""
         results = []
         for path in image_paths:
             results.append(self.describe(path))
         return results
     
-    def get_image_info(self, image_path: str) -> Dict:
+    def get_image_info(self, image_path: str) -> dict:
         """获取图片基本信息"""
         try:
             from PIL import Image

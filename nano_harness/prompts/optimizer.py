@@ -14,8 +14,6 @@
 8. 自我校验：让AI检查自己的输出
 """
 
-import re
-from typing import Dict, List, Optional
 
 
 class PromptOptimizer:
@@ -67,9 +65,9 @@ class PromptOptimizer:
     }
     
     def __init__(self):
-        self._custom_strategies: Dict[str, Dict] = {}
+        self._custom_strategies: dict[str, dict] = {}
     
-    def register_strategy(self, task_type: str, strategy: Dict):
+    def register_strategy(self, task_type: str, strategy: dict):
         """注册自定义优化策略"""
         self._custom_strategies[task_type] = strategy
     
@@ -138,7 +136,7 @@ class PromptOptimizer:
         
         return "\n\n".join(parts)
     
-    def _get_strategy(self, task_type: str) -> Dict:
+    def _get_strategy(self, task_type: str) -> dict:
         """获取优化策略"""
         if task_type in self._custom_strategies:
             return self._custom_strategies[task_type]
@@ -150,7 +148,7 @@ class PromptOptimizer:
         """添加角色扮演设定"""
         return f"请你扮演{role}。\n\n{prompt}"
     
-    def add_step_by_step(self, prompt: str, steps: List[str]) -> str:
+    def add_step_by_step(self, prompt: str, steps: list[str]) -> str:
         """添加步骤引导"""
         steps_text = "\n".join(f"{i+1}. {step}" for i, step in enumerate(steps))
         return f"{prompt}\n\n请按以下步骤进行：\n{steps_text}"
@@ -159,12 +157,12 @@ class PromptOptimizer:
         """明确输出格式"""
         return f"{prompt}\n\n输出格式要求：{format_desc}"
     
-    def add_constraints(self, prompt: str, constraints: List[str]) -> str:
+    def add_constraints(self, prompt: str, constraints: list[str]) -> str:
         """添加约束条件"""
         constraints_text = "\n".join(f"- {c}" for c in constraints)
         return f"{prompt}\n\n注意事项：\n{constraints_text}"
     
-    def add_examples(self, prompt: str, examples: List[Dict[str, str]]) -> str:
+    def add_examples(self, prompt: str, examples: list[dict[str, str]]) -> str:
         """添加示例（少样本学习）"""
         example_texts = []
         for i, ex in enumerate(examples, 1):
@@ -175,7 +173,7 @@ class PromptOptimizer:
     
     # ===== 提示词分析 =====
     
-    def analyze_prompt(self, prompt: str) -> Dict:
+    def analyze_prompt(self, prompt: str) -> dict:
         """
         分析提示词质量
         

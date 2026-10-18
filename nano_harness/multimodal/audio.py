@@ -11,8 +11,7 @@
 """
 
 import os
-from typing import Dict, List, Optional, Any
-from pathlib import Path
+from typing import Any
 
 
 class AudioProcessor:
@@ -36,7 +35,7 @@ class AudioProcessor:
     
     # ===== 核心方法 =====
     
-    def get_info(self, audio_path: str) -> Dict[str, Any]:
+    def get_info(self, audio_path: str) -> dict[str, Any]:
         """
         获取音频基本信息
         
@@ -56,8 +55,8 @@ class AudioProcessor:
         
         # 尝试用ffprobe获取详细信息
         try:
-            import subprocess
             import json
+            import subprocess
             
             result = subprocess.run(
                 ["ffprobe", "-v", "quiet", "-print_format", "json",
@@ -101,7 +100,7 @@ class AudioProcessor:
         self,
         audio_path: str,
         language: str = "auto",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         语音转文字（STT）
         
@@ -176,7 +175,7 @@ class AudioProcessor:
         
         return result
     
-    def analyze(self, audio_path: str) -> Dict[str, Any]:
+    def analyze(self, audio_path: str) -> dict[str, Any]:
         """
         综合分析音频
         
@@ -277,7 +276,7 @@ class AudioProcessor:
         input_path: str,
         output_dir: str,
         segment_duration: float = 60.0,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         分割音频为多个片段
         
@@ -345,7 +344,7 @@ class AudioProcessor:
         audio_path: str,
         min_silence_len: int = 1000,
         silence_thresh: float = -40.0,
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """
         检测静音片段
         
