@@ -12,11 +12,9 @@
 这是用户直接接触的"门面"Agent，负责最终交付体验。
 """
 
-import json
-from typing import Dict, Any
 
-from .base import BaseAgent
 from ..harness import TaskContext
+from .base import BaseAgent
 
 
 class CoordinatorAgent(BaseAgent):

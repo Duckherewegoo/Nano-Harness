@@ -3,10 +3,10 @@
 
 # LLM 配置
 llm:
-  provider: "openai"  # openai / anthropic / ollama / local
-  model: "gpt-4o-mini"
-  api_key: ""
-  base_url: ""
+  provider: "openai" # openai / anthropic / ollama / local
+  model: "qwen-3.6-flash"
+  api_key: ""         # ⚠️ 生产环境建议通过环境变量 OPENAI_API_KEY 注入，此处留空
+  base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
   temperature: 0.7
   max_tokens: 4096
 
@@ -42,7 +42,6 @@ mcp:
   enabled: true
   server_name: "nano-harness"
   server_version: "1.0.0"
-  # 外部MCP服务连接配置
   external_servers: []
     # - name: "example-mcp"
     #   transport: "stdio"  # stdio / http
@@ -74,6 +73,6 @@ multimodal:
 
 # 日志配置
 logging:
-  level: "INFO"  # DEBUG / INFO / WARNING / ERROR
+  level: "INFO"  
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
   file: "nano-harness.log"

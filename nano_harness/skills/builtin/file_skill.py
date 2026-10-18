@@ -10,10 +10,9 @@
 - 文件信息查询
 """
 
-import os
 import glob
-from typing import List
-from pathlib import Path
+import os
+
 from langchain_core.tools import StructuredTool
 
 from ..base import BaseSkill
@@ -38,7 +37,7 @@ class FileSkill(BaseSkill):
         super().__init__()
         self.work_dir = os.path.abspath(work_dir)
     
-    def get_tools(self) -> List:
+    def get_tools(self) -> list:
         return [
             StructuredTool.from_function(
                 func=self.read_file,
@@ -147,7 +146,7 @@ class FileSkill(BaseSkill):
             if os.path.isdir(safe_path):
                 return f"❌ 这是一个目录，不是文件：{file_path}"
             
-            with open(safe_path, 'r', encoding='utf-8', errors='replace') as f:
+            with open(safe_path, encoding='utf-8', errors='replace') as f:
                 content = f.read()
             
             # 限制输出大小
@@ -157,9 +156,9 @@ class FileSkill(BaseSkill):
             return f"【文件内容】{file_path}\n\n{content}"
             
         except ValueError as e:
-            return f"❌ {str(e)}"
+            return f"❌ {e!s}"
         except Exception as e:
-            return f"❌ 读取文件失败：{str(e)}"
+            return f"❌ 读取文件失败：{e!s}"
     
     def write_file(self, file_path: str, content: str) -> str:
         """写入文件"""
@@ -175,12 +174,12 @@ class FileSkill(BaseSkill):
                 f.write(content)
             
             size = len(content.encode('utf-8'))
-            return f"✅ 文件写入成功：{file_path} ({size} 字节)"
+            return f"文件写入成功：{file_path} ({size} 字节)"
             
         except ValueError as e:
-            return f"❌ {str(e)}"
+            return f"❌ {e!s}"
         except Exception as e:
-            return f"❌ 写入文件失败：{str(e)}"
+            return f"❌ 写入文件失败：{e!s}"
     
     def list_directory(self, dir_path: str = ".", show_hidden: bool = False) -> str:
         """列出目录内容"""
@@ -231,9 +230,9 @@ class FileSkill(BaseSkill):
             return "\n".join(lines)
             
         except ValueError as e:
-            return f"❌ {str(e)}"
+            return f"❌ {e!s}"
         except Exception as e:
-            return f"❌ 列出目录失败：{str(e)}"
+            return f"❌ 列出目录失败：{e!s}"
     
     def search_files(self, pattern: str, dir_path: str = ".") -> str:
         """搜索文件"""
@@ -268,9 +267,9 @@ class FileSkill(BaseSkill):
             return "\n".join(lines)
             
         except ValueError as e:
-            return f"❌ {str(e)}"
+            return f"❌ {e!s}"
         except Exception as e:
-            return f"❌ 搜索文件失败：{str(e)}"
+            return f"❌ 搜索文件失败：{e!s}"
     
     def get_file_info(self, file_path: str) -> str:
         """获取文件信息"""
@@ -295,9 +294,9 @@ class FileSkill(BaseSkill):
             return "\n".join(lines)
             
         except ValueError as e:
-            return f"❌ {str(e)}"
+            return f"❌ {e!s}"
         except Exception as e:
-            return f"❌ 获取文件信息失败：{str(e)}"
+            return f"❌ 获取文件信息失败：{e!s}"
     
     def create_directory(self, dir_path: str) -> str:
         """创建目录"""
@@ -311,12 +310,12 @@ class FileSkill(BaseSkill):
                     return f"❌ 路径已存在但不是目录：{dir_path}"
             
             os.makedirs(safe_path, exist_ok=True)
-            return f"✅ 目录创建成功：{dir_path}"
+            return f"目录创建成功：{dir_path}"
             
         except ValueError as e:
-            return f"❌ {str(e)}"
+            return f"❌ {e!s}"
         except Exception as e:
-            return f"❌ 创建目录失败：{str(e)}"
+            return f"❌ 创建目录失败：{e!s}"
     
     # ===== 辅助方法 =====
     
@@ -343,5 +342,6 @@ class FileSkill(BaseSkill):
                 elif entry.is_dir():
                     count += 1
             return f"{count}项, ~{self._format_size(total)}"
-        except:
+        except Exception as e:
+            print(f"获取目录大小失败: {e}")
             return "?"

@@ -12,18 +12,14 @@
 这是反思循环(Reflection Loop)的核心组件，也是多智能体系统的高级技巧。
 """
 
+from typing import Any
 
-"""
-批评家Agent（1.3.11适配版）
-"""
-
-
-
-
-from typing import Dict, Any, List
 from pydantic import BaseModel, Field
-from .base import BaseAgent
+
 from ..harness import TaskContext
+from .base import BaseAgent
+
+
 class DimensionScore(BaseModel):
     accuracy: int = Field(description="准确性得分 0-100")
     completeness: int = Field(description="完整性得分 0-100")
@@ -35,8 +31,8 @@ class DimensionScore(BaseModel):
 class CritiqueResult(BaseModel):
     overall_score: int = Field(description="整体质量得分 0-100")
     dimensions: DimensionScore = Field(description="各维度得分")
-    strengths: List[str] = Field(description="结果优点列表")
-    weaknesses: List[str] = Field(description="结果缺点列表")
+    strengths: list[str] = Field(description="结果优点列表")
+    weaknesses: list[str] = Field(description="结果缺点列表")
     feedback: str = Field(description="详细可执行的改进建议")
     needs_revision: bool = Field(description="是否需要重新迭代优化")
     revision_priority: str = Field(description="修订优先级 high/medium/low")
@@ -46,7 +42,7 @@ class CriticAgent(BaseAgent):
     role = "critic"
     system_prompt_key = "critic_agent"
 
-    async def critique(self, task: TaskContext) -> Dict[str, Any]:
+    async def critique(self, task: TaskContext) -> dict[str, Any]:
         """多维度质量评审（1.x原生结构化输出）"""
         results_summary = self._summarize_results(task)
         structured_llm = self.llm.with_structured_output(CritiqueResult)

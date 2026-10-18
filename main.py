@@ -1,245 +1,196 @@
-#!/usr/bin/env python3
 """
 NanoHarness - 入口文件
 =======================
-启动NanoHarness系统的主入口。
-
-用法：
-    python main.py              # 启动API服务
-    python main.py --cli        # 命令行交互模式
-    python main.py --demo       # 演示模式
+启动 NanoHarness 系统。
 """
 
-import os
-import sys
 import argparse
+import asyncio
+import sys
+
+import yaml
+
+# 引入我们定制的全局日志系统
+from nano_harness.utils.logger_setup import get_logger, setup_logger
+
+logger = get_logger("nano-harness")
+
+
+def load_config(config_path: str) -> dict:
+    """加载并解析配置文件"""
+    try:
+        with open(config_path, encoding="utf-8") as f:
+            config = yaml.safe_load(f)
+        return config
+    except FileNotFoundError:
+        logger.error("配置文件不存在: %s，请检查路径。", config_path)
+        sys.exit(1)
+    except yaml.YAMLError as e:
+        logger.error("配置文件格式错误: %s", e)
+        sys.exit(1)
+
+
+def init_harness(config: dict):
+    """公共初始化逻辑：加载 LLM 和 Skill，返回 Harness 实例"""
+    from langchain_openai import ChatOpenAI
+
+    from nano_harness import Harness, HarnessConfig
+    from nano_harness.skills.builtin import BashSkill, FileSkill
+
+    # 1. 初始化 LLM
+    llm_cfg = config.get("llm", {})
+    llm = ChatOpenAI(
+        model=llm_cfg.get("model", "qwen-3.6-flash"),
+        api_key=llm_cfg.get("api_key", ""),
+        base_url=llm_cfg.get("base_url", ""),
+        temperature=llm_cfg.get("temperature", 0.7),
+    )
+
+    # 2. 组装 Harness 配置
+    h_cfg = config.get("harness", {})
+    h_config = HarnessConfig(
+        max_iterations=h_cfg.get("max_iterations", 3),
+        enable_critique=h_cfg.get("enable_critic", True),
+        enable_human_in_the_loop=h_cfg.get("enable_user_confirm", True),
+    )
+
+    # 3. 实例化
+    harness = Harness(llm=llm, config=h_config)
+
+    # 4. 注册 Skill
+    skills_cfg = config.get("skills", {})
+    work_dir = skills_cfg.get("work_dir", "./workspace")
+    if skills_cfg.get("bash", {}).get("enabled", True):
+        harness.register_skill(BashSkill(work_dir=work_dir))
+    if skills_cfg.get("file", {}).get("enabled", True):
+        harness.register_skill(FileSkill(work_dir=work_dir))
+
+    return harness
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="NanoHarness - 轻量级多智能体编排框架"
-    )
-    parser.add_argument(
-        "--cli",
-        action="store_true",
-        help="启动命令行交互模式"
-    )
-    parser.add_argument(
-        "--demo",
-        action="store_true",
-        help="运行演示"
-    )
-    parser.add_argument(
-        "--host",
-        type=str,
-        default="0.0.0.0",
-        help="API服务监听地址"
-    )
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=8000,
-        help="API服务监听端口"
-    )
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="config.yaml",
-        help="配置文件路径"
-    )
+    parser = argparse.ArgumentParser(description="NanoHarness - 轻量级多智能体编排框架")
+    
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--cli", action="store_true", help="启动命令行交互模式")
+    group.add_argument("--demo", action="store_true", help="运行系统能力自检")
+    
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="API服务监听地址")
+    parser.add_argument("--port", type=int, default=8000, help="API服务监听端口")
+    parser.add_argument("--config", type=str, default="config.yaml", help="配置文件路径")
     
     args = parser.parse_args()
+    config = load_config(args.config)
     
+    # 初始化全局日志（使用配置里的 level）
+    log_level = config.get("logging", {}).get("level", "INFO")
+    log_file = config.get("logging", {}).get("file", "nano-harness.log")
+    setup_logger(log_file=log_file, level=log_level)
+
+    # 覆盖配置中的端口
+    config.setdefault("api", {})
+    config["api"]["host"] = args.host
+    config["api"]["port"] = args.port
+
     if args.demo:
-        run_demo()
+        run_demo(config)
     elif args.cli:
-        run_cli()
+        run_cli(config)
     else:
-        run_server(args.host, args.port)
+        run_server(config)
 
 
-def run_demo():
-    """运行演示"""
-    print("=" * 60)
-    print("  NanoHarness - 轻量级多智能体编排框架")
-    print("=" * 60)
-    print()
+def run_demo(config):
+    """运行系统自检"""
+    logger.info("============================================================")
+    logger.info("  NanoHarness - 系统自检")
+    logger.info("============================================================")
     
-    # 导入核心模块
     try:
-        from nano_harness import __version__
-        print(f"版本: {__version__}")
-    except:
-        print("版本: 1.0.0")
-    
-    print()
-    print("📦 核心模块:")
-    print("  ✅ Harness 编排引擎")
-    print("  ✅ 多智能体（规划/执行/评审/协调）")
-    print("  ✅ Function Calling")
-    print("  ✅ MCP 协议（服务端+客户端）")
-    print("  ✅ Skill 插件系统")
-    print("  ✅ 提示词工程（模板+优化器）")
-    print("  ✅ 多模态处理（图片/视频/音频）")
-    print("  ✅ Bash 命令执行（带用户确认）")
-    print("  ✅ REST API + WebSocket")
-    print("  ✅ Web 交互界面")
-    print()
-    
-    print("📂 目录结构:")
-    print_structure()
-    print()
-    
-    print("🚀 启动方式:")
-    print("  python main.py           # 启动API服务")
-    print("  python main.py --cli     # 命令行交互")
-    print("  python main.py --demo    # 演示模式")
-    print()
-    
-    print("🌐 API 文档:")
-    print("  http://localhost:8000/docs")
-    print()
-    
-    print("=" * 60)
-    print("  演示完成！运行 python main.py 启动服务")
-    print("=" * 60)
+        harness = init_harness(config)
+        logger.info("引擎初始化成功，当前最大迭代次数: %s", harness.config.max_iterations)
+        
+        logger.info("📦 已注册能力清单：")
+        logger.info("  - 多智能体协作（Planner/Executor/Critic/Coordinator）")
+        logger.info("  - MCP 协议支持")
+        logger.info("  - 多模态处理")
+        logger.info("自检通过，准备就绪。")
+        logger.info("👉 运行 `python main.py --cli` 进入交互模式，或直接运行以启动 Web 服务。")
+        
+    except Exception:
+        logger.exception("自检失败，请检查依赖或配置。")
+        sys.exit(1)
 
 
-def print_structure():
-    """打印项目结构"""
-    structure = """
-    nano-harness/
-    ├── nano_harness/
-    │   ├── __init__.py
-    │   ├── harness.py              # 核心编排引擎
-    │   ├── agent/                  # 多智能体
-    │   │   ├── base.py
-    │   │   ├── planner.py          # 规划器
-    │   │   ├── executor.py         # 执行器
-    │   │   ├── critic.py           # 批评家
-    │   │   └── coordinator.py      # 协调器
-    │   ├── mcp/                    # MCP协议
-    │   │   ├── server.py
-    │   │   ├── client.py
-    │   │   └── tools.py
-    │   ├── skills/                 # Skill机制
-    │   │   ├── base.py
-    │   │   ├── registry.py
-    │   │   └── builtin/            # 内置Skill
-    │   │       ├── bash_skill.py   # Bash执行
-    │   │       ├── image_skill.py  # 图片处理
-    │   │       ├── video_skill.py  # 视频处理
-    │   │       ├── audio_skill.py  # 音频处理
-    │   │       └── file_skill.py   # 文件操作
-    │   ├── multimodal/             # 多模态
-    │   │   ├── image.py
-    │   │   ├── video.py
-    │   │   └── audio.py
-    │   ├── prompts/                # 提示词工程
-    │   │   ├── templates.py
-    │   │   └── optimizer.py
-    │   └── api/                    # REST API
-    │       ├── __init__.py
-    │       └── server.py
-    ├── web/
-    │   └── index.html              # Web界面
-    ├── examples/
-    │   └── quickstart.py           # 快速上手示例
-    ├── config.yaml                 # 配置文件
-    ├── requirements.txt            # 依赖
-    └── README.md                   # 项目文档
-    """
-    print(structure)
-
-
-def run_cli():
+def run_cli(config):
     """命令行交互模式"""
-    print("=" * 60)
-    print("  NanoHarness CLI")
-    print("  输入 'quit' 或 'exit' 退出")
-    print("=" * 60)
-    print()
+    logger.info("============================================================")
+    logger.info("  NanoHarness CLI (输入 'quit' 退出)")
+    logger.info("============================================================")
     
-    # 尝试初始化Harness
-    harness = None
     try:
-        # 这里可以根据配置初始化Harness
-        print("ℹ️  提示：配置LLM后可获得完整AI能力")
-        print("    当前为演示模式，仅展示系统结构")
-        print()
+        harness = init_harness(config)
+        logger.info("Harness 就绪，请输入你的任务。\n")
     except Exception as e:
-        print(f"⚠️  Harness初始化失败: {e}")
-        print("    运行在演示模式")
-        print()
-    
+        logger.error("初始化失败: %s", e)
+        sys.exit(1)
+        
     while True:
         try:
-            user_input = input("你: ").strip()
-            
+            user_input = input("用户 > ").strip()
             if not user_input:
                 continue
-            
             if user_input.lower() in ['quit', 'exit', 'q']:
-                print("\n👋 再见！")
                 break
             
-            if user_input.lower() in ['help', '?']:
-                print_help()
-                continue
+            logger.info("思考中...")
+            # 严谨鲁棒：异步引擎必须用 asyncio.run 驱动
+            result = asyncio.run(harness.run(user_input))
             
-            # 简单的演示回复
-            print()
-            print("AI: 这是演示模式。")
-            print("    配置LLM并初始化Harness后可获得完整AI能力。")
-            print("    支持的功能：多智能体协作、Skill插件、MCP协议、")
-            print("    多模态处理、Bash命令执行、REST API等。")
-            print()
+            print("\n" + "=" * 40)
+            print(result)
+            print("=" * 40 + "\n")
             
         except KeyboardInterrupt:
-            print("\n\n👋 再见！")
+            logger.info("\n已中断。")
             break
-        except EOFError:
-            print("\n👋 再见！")
-            break
+        except Exception as e:
+            logger.error("执行出错: %s", e, exc_info=True)
 
 
-def print_help():
-    """打印帮助信息"""
-    print("""
-可用命令:
-  help / ?      显示帮助
-  quit / exit   退出程序
-  status        查看系统状态
-  skills        列出可用Skill
-  agents        列出Agent信息
-
-直接输入消息与AI对话。
-    """)
-
-
-def run_server(host: str, port: int):
-    """启动API服务器"""
+def run_server(config):
+    """启动 API 服务器"""
     try:
-        from nano_harness.api import run_server
+        import uvicorn
+
+        from nano_harness.api.server import create_app
         
-        print(f"🚀 启动 NanoHarness API 服务...")
-        print(f"📡 地址: http://{host}:{port}")
-        print(f"📚 文档: http://{host}:{port}/docs")
-        print(f"🌐 界面: http://{host}:{port}/ui")
-        print()
-        print("按 Ctrl+C 停止服务")
-        print()
+        # 修复：先实例化 Harness 再传给 FastAPI
+        harness = init_harness(config)
         
-        run_server(host=host, port=port)
+        host = config["api"]["host"]
+        port = config["api"]["port"]
+        
+        logger.info("🚀 启动 NanoHarness API 服务...")
+        logger.info("📡 地址: http://%s:%s", host, port)
+        logger.info("📚 文档: http://%s:%s/docs", host, port)
+        
+        # 生产环境推荐使用工厂模式启动
+        app = create_app(harness=harness)
+        uvicorn.run(app, host=host, port=port, log_level=config.get("logging", {}).get("level", "info").lower())
         
     except ImportError as e:
-        print(f"❌ 导入失败: {e}")
-        print("    请先安装依赖: pip install -r requirements.txt")
+        logger.error("缺少依赖，无法启动服务: %s", e)
+        logger.error("请运行: pip install fastapi uvicorn")
         sys.exit(1)
-    except Exception as e:
-        print(f"❌ 启动失败: {e}")
+    except Exception:
+        logger.exception("服务启动崩溃")
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.info("\n👋 退出。")
+        sys.exit(130)

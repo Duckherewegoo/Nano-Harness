@@ -17,12 +17,11 @@ Bash Skill
 
 import os
 import subprocess
-import shlex
-from typing import Dict, List, Optional, Callable, Any
+from collections.abc import Callable
+
 from langchain_core.tools import StructuredTool
 
 from ..base import BaseSkill
-
 
 # 高风险命令关键词（需要用户确认）
 HIGH_RISK_PATTERNS = [
@@ -89,7 +88,7 @@ class BashSkill(BaseSkill):
     def __init__(
         self,
         work_dir: str = ".",
-        user_confirm_callback: Optional[Callable] = None,
+        user_confirm_callback: Callable | None = None,
         timeout: int = 30,
         max_output_length: int = 10000,
         auto_confirm_low_risk: bool = True,
@@ -109,11 +108,11 @@ class BashSkill(BaseSkill):
         self.timeout = timeout
         self.max_output_length = max_output_length
         self.auto_confirm_low_risk = auto_confirm_low_risk
-        self._command_history: List[Dict] = []
+        self._command_history: list[dict] = []
     
     # ===== 工具定义 =====
     
-    def get_tools(self) -> List:
+    def get_tools(self) -> list:
         """返回Skill提供的工具"""
         return [
             StructuredTool.from_function(
@@ -179,10 +178,10 @@ class BashSkill(BaseSkill):
             try:
                 confirmed = self.user_confirm_callback(command, risk_level)
             except Exception as e:
-                return f"用户确认失败: {str(e)}"
+                return f"用户确认失败: {e!s}"
             
             if not confirmed:
-                return f"用户已拒绝执行该命令。"
+                return "用户已拒绝执行该命令。"
         
         # 4. 执行命令
         try:
@@ -205,9 +204,9 @@ class BashSkill(BaseSkill):
         except subprocess.TimeoutExpired:
             return f"⏰ 命令执行超时（{self.timeout}秒）：\n{command}"
         except Exception as e:
-            return f"❌ 命令执行失败：\n{command}\n\n错误：{str(e)}"
+            return f"❌ 命令执行失败：\n{command}\n\n错误：{e!s}"
     
-    def _run_command(self, command: str) -> Dict:
+    def _run_command(self, command: str) -> dict:
         """实际执行命令"""
         import datetime
         
@@ -234,7 +233,7 @@ class BashSkill(BaseSkill):
             if len(stdout) > self.max_output_length:
                 stdout = stdout[:self.max_output_length] + f"\n... [输出已截断，共 {len(stdout)} 字符]"
             if len(stderr) > self.max_output_length:
-                stderr = stderr[:self.max_output_length] + f"\n... [错误输出已截断]"
+                stderr = stderr[:self.max_output_length] + "\n... [错误输出已截断]"
             
             return {
                 "success": success,
@@ -344,7 +343,7 @@ class BashSkill(BaseSkill):
     
     # ===== 结果格式化 =====
     
-    def _format_result(self, command: str, result: Dict, risk_level: str) -> str:
+    def _format_result(self, command: str, result: dict, risk_level: str) -> str:
         """格式化执行结果"""
         lines = []
         
@@ -381,7 +380,7 @@ class BashSkill(BaseSkill):
     
     # ===== 生命周期 =====
     
-    def initialize(self, context: Optional[Dict] = None):
+    def initialize(self, context: dict | None = None):
         """初始化"""
         super().initialize(context)
         

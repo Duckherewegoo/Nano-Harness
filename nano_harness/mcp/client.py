@@ -12,12 +12,12 @@ MCP 客户端
 - 连接池管理
 - 错误重试
 """
-import json
 import asyncio
-import subprocess
+import json
 import logging
-from typing import Dict, List, Any, Optional
+import subprocess
 from dataclasses import dataclass
+from typing import Any
 
 # 可选依赖检查，避免运行时才报错
 try:
@@ -33,7 +33,7 @@ class RemoteMCPTool:
     """远程MCP工具信息"""
     name: str
     description: str
-    input_schema: Dict[str, Any]
+    input_schema: dict[str, Any]
 
 
 class MCPClient:
@@ -51,14 +51,14 @@ class MCPClient:
 
     def __init__(self, service_name: str = "remote-mcp"):
         self.service_name = service_name
-        self._process: Optional[subprocess.Popen] = None
-        self._tools: List[RemoteMCPTool] = []
+        self._process: subprocess.Popen | None = None
+        self._tools: list[RemoteMCPTool] = []
         self._initialized = False
         self._request_id = 0
 
     # ===== 连接管理 =====
 
-    def connect_stdio(self, command: List[str]) -> bool:
+    def connect_stdio(self, command: list[str]) -> bool:
         """
         通过stdio连接到本地MCP服务
 
@@ -112,7 +112,7 @@ class MCPClient:
     def _initialize(self):
         """初始化握手"""
         # 发送initialize请求
-        response = self._send_request("initialize", {
+        self._send_request("initialize", {
             "protocolVersion": "2024-11-05",
             "capabilities": {},
             "clientInfo": {
@@ -155,7 +155,7 @@ class MCPClient:
 
     # ===== 协议层 =====
 
-    def _send_request(self, method: str, params: Dict) -> Any:
+    def _send_request(self, method: str, params: dict) -> Any:
         """发送JSON-RPC请求"""
         self._request_id += 1
 
@@ -206,7 +206,7 @@ class MCPClient:
         else:
             raise ConnectionError("Not connected to any MCP service")
 
-    def _send_notification(self, method: str, params: Dict):
+    def _send_notification(self, method: str, params: dict):
         """发送通知（不需要响应）"""
         notification = {
             "jsonrpc": "2.0",
@@ -221,7 +221,7 @@ class MCPClient:
 
     # ===== 工具操作 =====
 
-    def list_tools(self) -> List[RemoteMCPTool]:
+    def list_tools(self) -> list[RemoteMCPTool]:
         """列出所有可用工具"""
         result = self._send_request("tools/list", {})
         tools_data = result.get("tools", [])
@@ -236,7 +236,7 @@ class MCPClient:
 
         return tools
 
-    def call_tool(self, name: str, arguments: Dict) -> str:
+    def call_tool(self, name: str, arguments: dict) -> str:
         """
         调用远程工具
 
@@ -263,7 +263,7 @@ class MCPClient:
 
     # ===== LangChain 集成 =====
 
-    def get_langchain_tools(self) -> List:
+    def get_langchain_tools(self) -> list:
         """
         将远程MCP工具转换为LangChain工具
 
@@ -296,7 +296,7 @@ class MCPClient:
 
     # ===== 资源操作 =====
 
-    def list_resources(self) -> List[Dict]:
+    def list_resources(self) -> list[dict]:
         """列出所有资源"""
         result = self._send_request("resources/list", {})
         return result.get("resources", [])
@@ -311,12 +311,12 @@ class MCPClient:
 
     # ===== 提示词操作 =====
 
-    def list_prompts(self) -> List[Dict]:
+    def list_prompts(self) -> list[dict]:
         """列出所有提示词模板"""
         result = self._send_request("prompts/list", {})
         return result.get("prompts", [])
 
-    def get_prompt(self, name: str, arguments: Optional[Dict] = None) -> str:
+    def get_prompt(self, name: str, arguments: dict | None = None) -> str:
         """获取提示词模板"""
         result = self._send_request("prompts/get", {
             "name": name,

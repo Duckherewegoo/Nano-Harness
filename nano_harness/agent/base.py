@@ -8,12 +8,12 @@
 - 提示词模板渲染
 - 记忆管理
 """
-from typing import Any, Dict, List, Optional
 from abc import ABC, abstractmethod
+from typing import Any
+
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import BaseMessage, AIMessage, ToolMessage
+from langchain_core.messages import AIMessage, BaseMessage, ToolMessage
 from langchain_core.tools import BaseTool
-from langchain_core.prompts import MessagesPlaceholder
 
 from ..prompts.templates import PromptTemplateEngine
 from ..skills.registry import SkillRegistry
@@ -34,11 +34,11 @@ class BaseAgent(ABC):
         self.prompt_engine = prompt_engine
         self.skill_registry = skill_registry
 
-        self._tools: List[BaseTool] = []
+        self._tools: list[BaseTool] = []
         self._tool_bound_llm = None  # 绑定工具后的LLM实例，替代原AgentExecutor
         self.refresh_tools()
 
-    def get_system_prompt(self, context: Optional[Dict] = None) -> str:
+    def get_system_prompt(self, context: dict | None = None) -> str:
         """获取渲染后的系统提示词"""
         return self.prompt_engine.render(
             self.system_prompt_key,
@@ -62,10 +62,10 @@ class BaseAgent(ABC):
     async def invoke_with_tools(
         self,
         query: str,
-        system_context: Optional[Dict] = None,
-        chat_history: Optional[List[BaseMessage]] = None,
+        system_context: dict | None = None,
+        chat_history: list[BaseMessage] | None = None,
         max_iterations: int = 10,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         带工具调用的执行入口（1.x原生实现，返回格式与旧版完全兼容）
         """
@@ -110,7 +110,7 @@ class BaseAgent(ABC):
                     try:
                         tool_result = await target_tool.ainvoke(tool_call["args"])
                     except Exception as e:
-                        tool_result = f"Tool execution error: {str(e)}"
+                        tool_result = f"Tool execution error: {e!s}"
 
                 # 记录中间步骤（格式与旧版完全兼容）
                 intermediate_steps.append((tool_call, tool_result))
@@ -128,7 +128,7 @@ class BaseAgent(ABC):
             "tool_calls": tool_calls_list,
         }
 
-    async def simple_chat(self, query: str, system_context: Optional[Dict] = None) -> str:
+    async def simple_chat(self, query: str, system_context: dict | None = None) -> str:
         """纯对话调用（无工具）"""
         messages = [
             ("system", self.get_system_prompt(system_context)),

@@ -4,11 +4,11 @@
 将音频处理能力封装为Skill。
 """
 
-from typing import List
+
 from langchain_core.tools import StructuredTool
 
-from ..base import BaseSkill
 from ...multimodal.audio import AudioProcessor
+from ..base import BaseSkill
 
 
 class AudioSkill(BaseSkill):
@@ -29,7 +29,7 @@ class AudioSkill(BaseSkill):
         super().__init__()
         self.processor = audio_processor or AudioProcessor()
     
-    def get_tools(self) -> List:
+    def get_tools(self) -> list:
         return [
             StructuredTool.from_function(
                 func=self.get_audio_info,
@@ -142,7 +142,7 @@ class AudioSkill(BaseSkill):
         # 如果有分段信息
         if result.get("segments"):
             lines.append("")
-            lines.append(f"共 {len(result['segments']} 个语音片段")
+            lines.append(f"共 {len(result['segments'])} 个语音片段")
         
         return "\n".join(lines)
     
@@ -195,6 +195,6 @@ class AudioSkill(BaseSkill):
         success = self.processor.convert_format(input_path, output_path, format=format)
         
         if success:
-            return f"✅ 格式转换成功，保存到：{output_path}"
+            return f"格式转换成功，保存到：{output_path}"
         else:
-            return f"❌ 格式转换失败，请检查ffmpeg或pydub是否可用"
+            return "❌ 格式转换失败，请检查ffmpeg或pydub是否可用"

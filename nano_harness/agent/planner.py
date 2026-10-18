@@ -11,17 +11,18 @@
 - 生成结构化的执行计划
 """
 
-from typing import List, Optional
+
 from pydantic import BaseModel, Field
-from .base import BaseAgent
+
 from ..harness import TaskContext
+from .base import BaseAgent
 
 
 # 结构化输出模型（1.x标准方案，替代手动JSON解析）
 class PlanStep(BaseModel):
     step_id: int = Field(description="步骤序号")
     description: str = Field(description="步骤详细描述")
-    tool: Optional[str] = Field(description="使用的工具名称，无需工具则为null")
+    tool: str | None = Field(description="使用的工具名称，无需工具则为null")
     risk_level: str = Field(description="风险等级：low/medium/high")
     expected_output: str = Field(description="步骤预期输出")
 
@@ -29,7 +30,7 @@ class PlanStep(BaseModel):
 class TaskPlan(BaseModel):
     task_analysis: str = Field(description="任务分析与理解")
     difficulty: str = Field(description="任务难度：easy/medium/hard")
-    steps: List[PlanStep] = Field(description="执行步骤列表")
+    steps: list[PlanStep] = Field(description="执行步骤列表")
     overall_strategy: str = Field(description="整体执行策略说明")
 
 

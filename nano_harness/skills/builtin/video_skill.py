@@ -4,11 +4,11 @@
 将视频处理能力封装为Skill。
 """
 
-from typing import List
+
 from langchain_core.tools import StructuredTool
 
-from ..base import BaseSkill
 from ...multimodal.video import VideoProcessor
+from ..base import BaseSkill
 
 
 class VideoSkill(BaseSkill):
@@ -29,7 +29,7 @@ class VideoSkill(BaseSkill):
         super().__init__()
         self.processor = video_processor or VideoProcessor()
     
-    def get_tools(self) -> List:
+    def get_tools(self) -> list:
         return [
             StructuredTool.from_function(
                 func=self.get_video_info,
@@ -137,9 +137,9 @@ class VideoSkill(BaseSkill):
         )
         
         if not frames:
-            return f"❌ 提取帧失败，请检查视频文件和ffmpeg/opencv是否可用"
+            return "❌ 提取帧失败，请检查视频文件和ffmpeg/opencv是否可用"
         
-        lines = [f"✅ 成功提取 {len(frames)} 帧"]
+        lines = [f"成功提取 {len(frames)} 帧"]
         lines.append(f"输出目录：{output_dir}")
         lines.append("")
         lines.append("前5帧：")
@@ -178,6 +178,6 @@ class VideoSkill(BaseSkill):
         success = self.processor.extract_audio(video_path, output_path)
         
         if success:
-            return f"✅ 音频提取成功，保存到：{output_path}"
+            return f"音频提取成功，保存到：{output_path}"
         else:
-            return f"❌ 音频提取失败，请检查ffmpeg是否可用"
+            return "❌ 音频提取失败，请检查ffmpeg是否可用"

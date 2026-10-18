@@ -4,11 +4,11 @@
 将图像处理能力封装为Skill，供Agent调用。
 """
 
-from typing import List
+
 from langchain_core.tools import StructuredTool
 
-from ..base import BaseSkill
 from ...multimodal.image import ImageProcessor
+from ..base import BaseSkill
 
 
 class ImageSkill(BaseSkill):
@@ -29,7 +29,7 @@ class ImageSkill(BaseSkill):
         super().__init__()
         self.processor = image_processor or ImageProcessor()
     
-    def get_tools(self) -> List:
+    def get_tools(self) -> list:
         return [
             StructuredTool.from_function(
                 func=self.describe_image,
@@ -108,7 +108,7 @@ class ImageSkill(BaseSkill):
         
         if result.get("quality"):
             q = result["quality"]
-            lines.append(f"\n📐 图片信息：")
+            lines.append("\n📐 图片信息：")
             if "width" in q:
                 lines.append(f"   - 尺寸：{q['width']} x {q['height']}")
             if "format" in q:

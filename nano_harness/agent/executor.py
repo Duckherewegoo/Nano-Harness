@@ -10,11 +10,10 @@
 - 错误处理：执行失败时的重试与降级
 """
 
-import json
-from typing import Dict, List, Any
+from typing import Any
 
-from .base import BaseAgent
 from ..harness import TaskContext
+from .base import BaseAgent
 
 
 class ExecutorAgent(BaseAgent):
@@ -23,7 +22,7 @@ class ExecutorAgent(BaseAgent):
     role = "executor"
     system_prompt_key = "executor_agent"
     
-    async def execute(self, task: TaskContext) -> List[Dict[str, Any]]:
+    async def execute(self, task: TaskContext) -> list[dict[str, Any]]:
         """
         执行计划中的所有步骤
         
@@ -36,7 +35,7 @@ class ExecutorAgent(BaseAgent):
         results = []
         steps = task.plan.get("steps", [])
         
-        for i, step in enumerate(steps):
+        for step in steps:
             step_result = await self._execute_step(task, step, results)
             results.append(step_result)
             
@@ -51,10 +50,10 @@ class ExecutorAgent(BaseAgent):
     async def _execute_step(
         self,
         task: TaskContext,
-        step: Dict,
-        previous_results: List[Dict],
+        step: dict,
+        previous_results: list[dict],
         retry: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """执行单个步骤"""
         step_id = step.get("step_id", 0)
         tool_name = step.get("tool")
@@ -111,7 +110,7 @@ class ExecutorAgent(BaseAgent):
                 "retry": retry,
             }
     
-    def _build_execution_context(self, task: TaskContext, results: List[Dict]) -> str:
+    def _build_execution_context(self, task: TaskContext, results: list[dict]) -> str:
         """构建执行上下文 - 把之前的结果整理成可读格式"""
         if not results:
             return "暂无之前的执行结果"

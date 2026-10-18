@@ -11,16 +11,16 @@
 - FileSkill: 文件操作能力
 """
 
+from .audio_skill import AudioSkill
 from .bash_skill import BashSkill
+from .file_skill import FileSkill
 from .image_skill import ImageSkill
 from .video_skill import VideoSkill
-from .audio_skill import AudioSkill
-from .file_skill import FileSkill
 
 __all__ = [
+    "AudioSkill",
     "BashSkill",
+    "FileSkill",
     "ImageSkill",
     "VideoSkill",
-    "AudioSkill",
-    "FileSkill",
 ]
