@@ -1,10 +1,11 @@
 """
 Skill 注册中心
 ==============
-管理所有已注册的Skill，提供统一的工具发现和调用接口。
+管理所有已注册的 Skill，提供统一的工具发现和调用接口。
 """
 
 import threading
+from typing import Any
 
 from langchain_core.tools import BaseTool
 
@@ -24,7 +25,7 @@ class SkillRegistry:
         self._skills: dict[str, BaseSkill] = {}
         self._tool_cache: list[BaseTool] | None = None
         self._cache_dirty: bool = True
-        # 严谨鲁棒：引入线程锁，防止并发注册和读取时的竞态条件
+        # 使用 RLock 允许多次获取同一把锁（主要用于 get_stats 内部调 get_all_tools）
         self._lock = threading.RLock()
 
     # ===== Skill 管理 =====
@@ -32,23 +33,30 @@ class SkillRegistry:
     def register(self, skill: BaseSkill) -> bool:
         """注册一个 Skill"""
         with self._lock:
+            # 1. 如果存在同名 Skill，先安全清理旧资源
             if skill.name in self._skills:
-                logger.warning("Skill '%s' 已存在，将被覆盖。", skill.name)
+                logger.warning("Skill '%s' 已存在，正在覆盖并清理旧实例。", skill.name)
+                old_skill = self._skills.pop(skill.name)
+                try:
+                    old_skill.cleanup()
+                except Exception as e:
+                    logger.error("旧 Skill '%s' 清理失败: %s", skill.name, e, exc_info=True)
 
-            # 检查依赖
+            # 2. 检查依赖
             missing_deps = self._check_dependencies(skill)
             if missing_deps:
                 logger.warning("Skill '%s' 缺少依赖: %s", skill.name, missing_deps)
 
-            # 严谨鲁棒：生命周期异常隔离
-            if not getattr(skill, "is_initialized", False):
+            # 3. 生命周期初始化（异常隔离）
+            # 注意：BaseSkill.initialize() 内部会自动将 self._initialized 设为 True
+            if not skill.is_initialized:
                 try:
                     skill.initialize()
-                    skill.is_initialized = True
                 except Exception as e:
                     logger.error("Skill '%s' 初始化失败，拒绝注册: %s", skill.name, e, exc_info=True)
                     return False
 
+            # 4. 正式入驻
             self._skills[skill.name] = skill
             self._cache_dirty = True
             logger.info("Skill 注册成功: %s", skill.name)
@@ -67,7 +75,7 @@ class SkillRegistry:
             if dependents:
                 logger.warning("Skill %s 依赖 '%s'，卸载可能导致它们崩溃。", dependents, skill_name)
 
-            # 严谨鲁棒：清理失败不阻断卸载流程
+            # 清理失败不阻断卸载流程
             try:
                 skill.cleanup()
             except Exception as e:
@@ -105,9 +113,14 @@ class SkillRegistry:
             skill = self._skills.get(skill_name)
             if not skill:
                 return []
-            return skill.get_tools()
+            try:
+                return skill.get_tools()
+            except Exception as e:
+                logger.error("获取 Skill '%s' 的工具失败: %s", skill_name, e)
+                return []
 
     def get_tool_by_name(self, tool_name: str) -> BaseTool | None:
+        # 这里调用 get_all_tools 会自动加锁，所以不需要外层再包 with self._lock
         for tool in self.get_all_tools():
             if tool.name == tool_name:
                 return tool
@@ -119,7 +132,13 @@ class SkillRegistry:
         seen_names: set[str] = set()
 
         for skill in self._skills.values():
-            for tool in skill.get_tools():
+            try:
+                skill_tools = skill.get_tools()
+            except Exception as e:
+                logger.error("构建缓存时，Skill '%s' 提取工具失败: %s", skill.name, e)
+                continue
+
+            for tool in skill_tools:
                 # 严谨鲁棒：重名工具处理
                 if tool.name in seen_names:
                     original_name = tool.name
@@ -196,3 +215,11 @@ class SkillRegistry:
     def __contains__(self, name: str) -> bool:
         with self._lock:
             return name in self._skills
+
+
+# 提供全局单例，方便其他模块直接 import 使用
+_global_registry = SkillRegistry()
+
+def get_registry() -> SkillRegistry:
+    """获取全局单例注册中心"""
+    return _global_registry
