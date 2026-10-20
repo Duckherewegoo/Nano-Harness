@@ -552,7 +552,7 @@
         const sendButton = document.getElementById('sendButton');
         const welcomeScreen = document.getElementById('welcomeScreen');
         
-        let sessionId = null;
+        let sessionId = localStorage.getItem('nano_session_id') || null;
         let isLoading = false;
         
         // 自动调整输入框高度
@@ -606,8 +606,12 @@
                     }),
                 });
                 
-                const data = await response.json();
-                sessionId = data.session_id;
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+                if (data.session_id) {
+                    sessionId = data.session_id;
+                    localStorage.setItem('nano_session_id', sessionId);
+                }
                 
                 // 移除思考中
                 removeThinking();
@@ -640,7 +644,8 @@
             contentDiv.className = 'message-content';
             
             // 简单的代码格式化
-            let formattedContent = content;
+            const escapeHTML = (str) => str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag]));
+            let formattedContent = escapeHTML(content);
             formattedContent = formattedContent.replace(/```(\w+)?\n([\s\S]*?)```/g, 
                 '<pre><code>$2</code></pre>');
             formattedContent = formattedContent.replace(/`([^`]+)`/g, '<code>$1</code>');
